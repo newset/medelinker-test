@@ -1,0 +1,64 @@
+$blue = #4e99fa;
+$slotHeight = 40px;
+
+.picker {
+	width: 100%;
+	position: absolute;
+	bottom: 0px;
+	
+	.picker-item {
+		width: 100%;
+		
+		.header {
+			text-align: center;
+			display: flex;
+			justify-content: space-between;
+			padding: 10px;
+			line-height: 20px;
+			
+			.action {
+				&.blue {
+					color: $blue;
+				}
+			}
+		}
+		
+		.slots {
+			display: flex;
+			text-align: center;
+			border-top: 1px solid #ddd;
+			padding: 10px 0px;
+			height: $slotHeight * 5;
+			overflow-y: scroll;
+			position: relative;
+
+			.slot {
+				flex: 1;
+				position: relative;
+				overflow: hidden;
+				
+				.slot-content {
+					padding: 2*$slotHeight 0;
+				}
+
+				.slot-item {
+					height: $slotHeight;
+					line-height: $slotHeight;
+				}
+			}
+			
+			.picker-highlight {
+				height: $slotHeight;
+				// background-color: #ddd;
+				width: 90%;
+				position: absolute;
+				z-index: 3;
+				top: 50%;
+				left: 5%
+				margin-top: -($slotHeight/2);
+				border: 2px solid $blue;
+				border-width: 2px 0px;
+			}
+		}
+	}
+}
