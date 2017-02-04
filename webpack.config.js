@@ -17,5 +17,10 @@ module.exports = {
 			loaders: ["style-loader", "css-loader", "stylus-loader"]
 		}]
     },
-    devtool: 'source-map'
+    devtool: 'source-map',
+    plugins: [
+        new webpack.DefinePlugin({
+            
+        })
+    ]
 };
