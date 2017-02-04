@@ -10188,7 +10188,7 @@ exports = module.exports = __webpack_require__(5)();
 
 
 // module
-exports.push([module.i, ".picker {\n  width: 100%;\n  position: absolute;\n  bottom: 0px;\n}\n.picker .picker-item {\n  width: 100%;\n}\n.picker .picker-item .header {\n  text-align: center;\n  display: flex;\n  justify-content: space-between;\n  padding: 10px;\n  line-height: 20px;\n}\n.picker .picker-item .header .action.blue {\n  color: #4e99fa;\n}\n.picker .picker-item .slots {\n  display: flex;\n  text-align: center;\n  border-top: 1px solid #ddd;\n  padding: 10px 0px;\n  height: 200px;\n  overflow-y: scroll;\n  position: relative;\n}\n.picker .picker-item .slots .slot {\n  flex: 1;\n  position: relative;\n  overflow: hidden;\n}\n.picker .picker-item .slots .slot .slot-content {\n  padding: 80px 0;\n}\n.picker .picker-item .slots .slot .slot-item {\n  height: 40px;\n  line-height: 40px;\n}\n.picker .picker-item .slots .picker-highlight {\n  height: 40px;\n  width: 90%;\n  position: absolute;\n  z-index: 3;\n  top: 50%;\n  left: 5%;\n  margin-top: -20px;\n  border: 2px solid #4e99fa;\n  border-width: 2px 0px;\n}\n", ""]);
+exports.push([module.i, ".picker {\n  width: 100%;\n  position: absolute;\n  bottom: 0px;\n}\n.picker .picker-item {\n  width: 100%;\n}\n.picker .picker-item .header {\n  text-align: center;\n  display: flex;\n  justify-content: space-between;\n  padding: 10px;\n  line-height: 20px;\n}\n.picker .picker-item .header .action.blue {\n  color: #4e99fa;\n}\n.picker .picker-item .slots {\n  display: flex;\n  text-align: center;\n  border-top: 1px solid #ddd;\n  padding: 10px 0px;\n  height: 200px;\n  overflow-y: scroll;\n  position: relative;\n}\n.picker .picker-item .slots .slot {\n  flex: 1;\n  position: relative;\n  overflow: hidden;\n}\n.picker .picker-item .slots .slot .slot-content {\n  padding: 80px 0;\n  transform: translate3d(0px, 0px, 0px);\n}\n.picker .picker-item .slots .slot .slot-item {\n  height: 40px;\n  line-height: 40px;\n}\n.picker .picker-item .slots .picker-highlight {\n  pointer-events: none;\n  height: 40px;\n  width: 90%;\n  position: absolute;\n  z-index: 3;\n  top: 50%;\n  left: 5%;\n  margin-top: -20px;\n  border: 2px solid #4e99fa;\n  border-width: 2px 0px;\n}\n", ""]);
 
 // exports
 
@@ -10421,27 +10421,40 @@ var template = "\n\t<div class=\"picker-item\">\n\t\t<div class=\"header\">\n\t\
  * @param  {object} dom  dom 节点
  * @param  {string} item 
  */
-function appendSlot(dom, item) {
-	var $dom = (0, _jquery2.default)(item);
+function appendSlot(dom, items, slotHeight) {
+	var $dom = (0, _jquery2.default)(_slot2.default.make(items)),
+	    slotCount = items.length;
 	dom.find(".slots").append($dom);
-
 	var state = {};
 
-	(0, _draggable2.default)($dom.find(".slot-content")[0], {
+	(0, _draggable2.default)($dom[0], {
 		start: function start(evt) {
 			state = {
-				top: event.pageY,
-				left: event.pageX,
+				top: evt.pageY,
+				left: evt.pageX,
 				ts: new Date()
 			};
 		},
-		drage: function drage(evt) {
+		drag: function drag(evt) {
 			var y = evt.pageY - state.top;
 			state.top = evt.pageY;
-			translateElm($dom, null, y);
+			translateElm($dom.find(".slot-content")[0], null, y);
 		},
 		end: function end(evt) {
-			console.log("end");
+			var elm = $dom.find(".slot-content")[0];
+			var y = getTranslate(elm);
+			var fix = Math.round(y / slotHeight) * slotHeight;
+
+			if (y > 0) {
+				fix = 0;
+			}
+
+			if (y < -slotHeight * (slotCount - 1)) {
+				fix = -slotHeight * (slotCount - 1);
+			}
+			console.log("fix", y - fix);
+
+			translateElm(elm, null, fix - y);
 		}
 	});
 }
@@ -10452,9 +10465,21 @@ function appendSlot(dom, item) {
 function updateSlot(dom, index, item) {}
 
 /**
+ * 获取 Y 位移
+ */
+function getTranslate(elm) {
+	var st = window.getComputedStyle(elm, null).transform,
+	    reg = /matrix\(.*, (-?\d+(\.?\d+?)?)\)/;
+	return parseInt(st.match(reg)[1]);
+}
+
+/**
  * 设置元素translate
  */
-function translateElm(elm, x, y) {}
+function translateElm(elm, x, y) {
+	var translateY = getTranslate(elm) + parseInt(y);
+	elm.style.transform = "translate3d(0px, " + translateY + "px, 0px)";
+}
 
 var Picker = exports.Picker = function () {
 	/**
@@ -10469,7 +10494,9 @@ var Picker = exports.Picker = function () {
 		dom.html(template);
 
 		this.dom = dom;
-		this.config = Object.assign({}, config);
+		this.config = Object.assign({
+			slotHeight: 40
+		}, config);
 
 		if (config.slots && config.slots instanceof Array) {
 			this.setup();
@@ -10486,7 +10513,7 @@ var Picker = exports.Picker = function () {
 			var slots = this.config.slots;
 			slots.forEach(function (item, index) {
 				// 初始化单个slot
-				appendSlot(_this.dom, _slot2.default.make(item.values));
+				appendSlot.call(_this, _this.dom, item.values, _this.config.slotHeight);
 				// initSlot(this.dom, index, item);
 			});
 		}
